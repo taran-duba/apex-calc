@@ -54,32 +54,32 @@ export default function CalculatorRunner({ definitionString }: CalculatorRunnerP
   const calculate = useCallback(() => {
     if (!definition) return;
 
-    const formula = definition.formula;
-    const inputNames = definition.inputs.map((i) => i.name);
-    
     try {
-      // Create a function with the input names as arguments.
-      // The body of the function is the user-provided formula.
-      // We wrap it in a `try...catch` to handle potential runtime errors in the formula.
+      const { inputs, formula } = definition;
+      const inputNames = inputs.map((i) => i.name);
+
+      const args = inputs.map(input => {
+          const value = inputValues[input.name];
+          return input.type === 'number' ? parseFloat(value) : value;
+      });
+      
+      // All args must be valid numbers for calculation if type is number
+      if (args.some(arg => typeof arg === 'number' && isNaN(arg))) {
+        setResult(null);
+        return;
+      }
+
       const formulaFunc = new Function(
         ...inputNames,
-        `try { return ${formula}; } catch(e) { console.error('Calculation error:', e); return null; }`
+        `"use strict"; try { return (${formula}); } catch(e) { console.error('Calculation error:', e); return null; }`
       );
-      
-      // Get the current values for the inputs, parsing them as floats.
-      const args = definition.inputs.map(input => {
-        const value = inputValues[input.name];
-        return input.type === 'number' ? parseFloat(value) : value;
-      });
 
-      // Call the function with the arguments.
       const newResult = formulaFunc(...args);
       
       setResult(newResult);
       if (newResult !== null && newResult !== result) {
         setIsNewResult(true);
         const timer = setTimeout(() => setIsNewResult(false), 500);
-        // This cleanup is important for when the component unmounts or re-renders.
         return () => clearTimeout(timer);
       }
 
@@ -90,8 +90,9 @@ export default function CalculatorRunner({ definitionString }: CalculatorRunnerP
   }, [definition, inputValues, result]);
 
   useEffect(() => {
-    // We run the calculation whenever the definition or inputs change.
-    calculate();
+    if (definition) {
+      calculate();
+    }
   }, [definition, inputValues, calculate]);
 
 
@@ -116,7 +117,6 @@ export default function CalculatorRunner({ definitionString }: CalculatorRunnerP
   const formatResult = (res: string | number | null) => {
     if (res === null || res === undefined) return '...';
     if (typeof res === 'number' && !Number.isFinite(res)) return '...';
-    // Let's add commas to numbers for better readability
     if (typeof res === 'number') {
       return res.toLocaleString('en-US', {
         minimumFractionDigits: 0,
