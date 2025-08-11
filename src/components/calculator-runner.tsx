@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -51,36 +51,49 @@ export default function CalculatorRunner({ definitionString }: CalculatorRunnerP
     }
   }, [definitionString]);
 
-  const calculateResult = useMemo(() => {
-    if (!definition) return () => null;
+  const calculate = useCallback(() => {
+    if (!definition) return;
 
+    const formula = definition.formula;
     const inputNames = definition.inputs.map((i) => i.name);
+    
     try {
+      // Create a function with the input names as arguments.
+      // The body of the function is the user-provided formula.
+      // We wrap it in a `try...catch` to handle potential runtime errors in the formula.
       const formulaFunc = new Function(
         ...inputNames,
-        `try { ${definition.formula} } catch(e) { console.error('Calculation error:', e); return null; }`
+        `try { return ${formula}; } catch(e) { console.error('Calculation error:', e); return null; }`
       );
-      return formulaFunc;
-    } catch(e) {
-      console.error('Failed to create formula function:', e);
-      setError('The AI generated an invalid calculation formula.');
-      return () => null;
-    }
-  }, [definition]);
-  
-  useEffect(() => {
-    if (definition && Object.keys(inputValues).length > 0) {
-      const args = definition.inputs.map(input => parseFloat(inputValues[input.name]) || 0);
-      const newResult = calculateResult(...args);
+      
+      // Get the current values for the inputs, parsing them as floats.
+      const args = definition.inputs.map(input => {
+        const value = inputValues[input.name];
+        return input.type === 'number' ? parseFloat(value) : value;
+      });
+
+      // Call the function with the arguments.
+      const newResult = formulaFunc(...args);
       
       setResult(newResult);
-      if (newResult !== null) {
+      if (newResult !== null && newResult !== result) {
         setIsNewResult(true);
         const timer = setTimeout(() => setIsNewResult(false), 500);
+        // This cleanup is important for when the component unmounts or re-renders.
         return () => clearTimeout(timer);
       }
+
+    } catch(e) {
+      console.error('Failed to create or execute formula function:', e);
+      setError('The AI generated an invalid calculation formula.');
     }
-  }, [inputValues, definition, calculateResult]);
+  }, [definition, inputValues, result]);
+
+  useEffect(() => {
+    // We run the calculation whenever the definition or inputs change.
+    calculate();
+  }, [definition, inputValues, calculate]);
+
 
   const handleInputChange = (name: string, value: string) => {
     setInputValues((prev) => ({ ...prev, [name]: value }));
@@ -98,6 +111,19 @@ export default function CalculatorRunner({ definitionString }: CalculatorRunnerP
 
   if (!definition) {
     return null; 
+  }
+
+  const formatResult = (res: string | number | null) => {
+    if (res === null || res === undefined) return '...';
+    if (typeof res === 'number' && !Number.isFinite(res)) return '...';
+    // Let's add commas to numbers for better readability
+    if (typeof res === 'number') {
+      return res.toLocaleString('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      });
+    }
+    return res;
   }
 
   return (
@@ -128,7 +154,7 @@ export default function CalculatorRunner({ definitionString }: CalculatorRunnerP
         <div className="text-4xl font-bold font-code text-accent transition-all duration-300">
           <span className={cn('transition-opacity duration-500', isNewResult && 'animate-pulse')}>
             {definition.output.prefix}
-            {result !== null ? result : '...'}
+            {formatResult(result)}
             {definition.output.suffix}
           </span>
         </div>

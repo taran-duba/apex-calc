@@ -62,12 +62,19 @@ interface CalculatorDefinition {
 }
 \`\`\`
 
-The 'formula' should be a valid JavaScript expression that calculates the result using the 'name' of the inputs as variables. Do not include 'return' in the formula string.
+The 'formula' must be a valid, single-line JavaScript expression. It should calculate the result using the 'name' of the inputs as variables. DO NOT include 'return', semicolons, or any other statements.
 
 For example, if the user asks for a "simple interest calculator", a valid JSON output would be:
 \`\`\`json
 {
-  "calculatorCode": "{ \\"title\\": \\"Simple Interest Calculator\\", \\"description\\": \\"Calculate simple interest based on principal, rate, and time.\\", \\"inputs\\": [ { \\"name\\": \\"principal\\", \\"label\\": \\"Principal Amount\\", \\"type\\": \\"number\\", \\"defaultValue\\": 1000 }, { \\"name\\": \\"rate\\", \\"label\\": \\"Annual Interest Rate (%)\\", \\"type\\": \\"number\\", \\"defaultValue\\": 5 }, { \\"name\\": \\"time\\", \\"label\\": \\"Time (Years)\\", \\"type\\": \\"number\\", \\"defaultValue\\": 1 } ], \\"formula\\": \\"principal * (rate / 100) * time\\", \\"output\\": { \\"label\\": \\"Total Interest\\", \\"prefix\\": \\"$\\" } }"
+  "calculatorCode": "{\\"title\\":\\"Simple Interest Calculator\\",\\"description\\":\\"Calculates simple interest given principal, rate, and time.\\",\\"inputs\\":[{\\"name\\":\\"principal\\",\\"label\\":\\"Principal Amount\\",\\"type\\":\\"number\\",\\"defaultValue\\":1000},{\\"name\\":\\"rate\\",\\"label\\":\\"Annual Interest Rate (%)\\",\\"type\\":\\"number\\",\\"defaultValue\\":5},{\\"name\\":\\"time\\",\\"label\\":\\"Time (Years)\\",\\"type\\":\\"number\\",\\"defaultValue\\":1} ],\\"formula\\":\\"principal * (rate / 100) * time\\",\\"output\\":{\\"label\\":\\"Total Interest\\",\\"prefix\\":\\"$\\"}}"
+}
+\`\`\`
+
+Another example for a "BMI Calculator":
+\`\`\`json
+{
+  "calculatorCode": "{\\"title\\":\\"BMI Calculator\\",\\"description\\":\\"Calculate Body Mass Index (BMI).\\",\\"inputs\\":[{\\"name\\":\\"weightKg\\",\\"label\\":\\"Weight (kg)\\",\\"type\\":\\"number\\",\\"defaultValue\\":70},{\\"name\\":\\"heightCm\\",\\"label\\":\\"Height (cm)\\",\\"type\\":\\"number\\",\\"defaultValue\\":175}],\\"formula\\":\\"weightKg / ((heightCm / 100) ** 2)\\",\\"output\\":{\\"label\\":\\"Your BMI\\"}}"
 }
 \`\`\`
 
