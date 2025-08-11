@@ -58,7 +58,7 @@ export default function CalculatorRunner({ definitionString }: CalculatorRunnerP
     try {
       const formulaFunc = new Function(
         ...inputNames,
-        `try { const result = ${definition.formula}; return result; } catch(e) { console.error('Calculation error:', e); return null; }`
+        `try { ${definition.formula} } catch(e) { console.error('Calculation error:', e); return null; }`
       );
       return formulaFunc;
     } catch(e) {

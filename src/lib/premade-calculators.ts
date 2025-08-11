@@ -23,7 +23,7 @@ export const premadeCalculators: (CalculatorDefinition & { icon: React.ReactNode
       { name: 'tipPercentage', label: 'Tip Percentage', type: 'number', defaultValue: 18 },
       { name: 'people', label: 'Number of People', type: 'number', defaultValue: 1 },
     ],
-    formula: "const totalTip = bill * (tipPercentage / 100); const totalBill = bill + totalTip; const perPerson = totalBill / people; return isNaN(perPerson) ? '0' : perPerson.toFixed(2);",
+    formula: "const totalTip = bill * (tipPercentage / 100); const totalBill = Number(bill) + totalTip; const perPerson = totalBill / people; return isNaN(perPerson) ? '0' : perPerson.toFixed(2);",
     output: { label: 'Amount Per Person', prefix: '$' },
   },
   {
